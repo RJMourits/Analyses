@@ -10,10 +10,13 @@
   rm(list = ls())
   setwd("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen")
   getwd()
-  
+
+  #set province
+  provincie <- "Groningen (stad)"
+
   #Read the data files. Four files; documentation: See folder
-  Occupations <- as.data.frame(fread("Zeeland/Occupations.txt", encoding="UTF-8"))
-  Pedigree <- as.data.frame(fread("Zeeland/Pedigree.txt", encoding="UTF-8"))
+  Occupations <- as.data.frame(fread(paste0(provincie, "/Occupations_long.txt"), encoding="UTF-8"))
+  Pedigree <- as.data.frame(fread(paste0(provincie, "/Pedigree.txt"), encoding="UTF-8"))
   
   #Zet data goed.
   Pedigree$LastEntryDate <- ymd(Pedigree$LastEntryDate)
@@ -34,9 +37,10 @@
   ########################
     
   Sample <- Pedigree[Pedigree$Sex=="f" & !is.na(Pedigree$Id_mother) & !is.na(Pedigree$Id_father),]
-  Occ <- Occupations[Sample$Id_person %in% Occupations$Id_person,]
+  Occ <- Occupations[Occupations$Id_person %in% Sample$Id_person,]
   Occ$year <- year(Occ$Date)
   Occ$Age <- floor(Occ$Age)
+  Occ$Cert <- ifelse(Occ$Cert %in% c("Marriage1", "Marriage2", "Marriage3", "Marriage4", "Marriage5"), "Marriage", Occ$Cert)
   #View(as.data.frame(table(Occ[grepl("arbeidster", Occ$Occupation), ]$Occupation)) %>% arrange(-Freq))
   Occ$Occupation[Occ$Occupation %in% c("arbeider", "arbeidster")] <- "arbeider / arbeidster"
   Occ$Occupation[Occ$Occupation %in% c("bakker", "bakster", "broodbakker", "broodbakster")] <- "bakker / bakster / broodbakker / broodbakster"
@@ -58,9 +62,13 @@
   Occ$Occupation[Occ$Occupation %in% c("veldarbeider", "veldarbeidster")] <- "veldarbeider / veldarbeidster"
   Occ$Occupation[Occ$Occupation %in% c("werkman", "werkvrouw")] <- "werkman / werkvrouw"
   Occ$Occupation[Occ$Occupation %in% c("winkelier", "winkelierster")] <- "winkelier / winkelierster"
-  write.table(Sample, "ESSHC 2025/Zeeland/Input/Oorspronkelijke beroepsgegevens vrouwen Zeeland.csv", row.names=F, sep=",", quote=T, fileEncoding="UTF-8")
-   
+  write.table(Sample, paste0("ESSHC 2025/", provincie, "/Input/Oorspronkelijke beroepsgegevens vrouwen.csv"), row.names=F, sep=",", quote=T, fileEncoding="UTF-8")
   
+  
+  ###########################################################
+  # 2a. List occupations by certifiate type for each period #
+  ###########################################################
+    
   saveCohorts <- function(a,b,d){
   Marriage <- Occ %>% arrange(Id_person, Date)
   Marriage <- Marriage[Marriage$Cert=="Marriage",c("Id_person", "year", "Age", "Occupation")]
@@ -140,34 +148,35 @@
   saveOccupations(df1900, "df1900")
   saveOccupations(df1930, "df1930")
   
-  write.table(df1812_mar, "ESSHC 2025/Zeeland/top 1% tables/df1812_mar.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1812_death, "ESSHC 2025/Zeeland/top 1% tables/df1812_death.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1812_B1, "ESSHC 2025/Zeeland/top 1% tables/df1812_B1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1812_D1, "ESSHC 2025/Zeeland/top 1% tables/df1812_D1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1850_mar, "ESSHC 2025/Zeeland/top 1% tables/df1850_mar.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1850_death, "ESSHC 2025/Zeeland/top 1% tables/df1850_death.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1850_B1, "ESSHC 2025/Zeeland/top 1% tables/df1850_B1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1850_D1, "ESSHC 2025/Zeeland/top 1% tables/df1850_D1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1875_mar, "ESSHC 2025/Zeeland/top 1% tables/df1875_mar.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1875_death, "ESSHC 2025/Zeeland/top 1% tables/df1875_death.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1875_B1, "ESSHC 2025/Zeeland/top 1% tables/df1875_B1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1875_D1, "ESSHC 2025/Zeeland/top 1% tables/df1875_D1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1900_mar, "ESSHC 2025/Zeeland/top 1% tables/df1900_mar.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1900_death, "ESSHC 2025/Zeeland/top 1% tables/df1900_death.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1900_B1, "ESSHC 2025/Zeeland/top 1% tables/df1900_B1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1900_D1, "ESSHC 2025/Zeeland/top 1% tables/df1900_D1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1930_mar, "ESSHC 2025/Zeeland/top 1% tables/df1930_mar.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1930_death, "ESSHC 2025/Zeeland/top 1% tables/df1930_death.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1930_B1, "ESSHC 2025/Zeeland/top 1% tables/df1930_B1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
-  write.table(df1930_D1, "ESSHC 2025/Zeeland/top 1% tables/df1930_D1.csv", sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812_mar, paste0("ESSHC 2025/", provincie, "/occupation tables/df1812_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812_death, paste0("ESSHC 2025/", provincie, "/occupation tables/df1812_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812_B1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1812_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812_D1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1812_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850_mar, paste0("ESSHC 2025/", provincie, "/occupation tables/df1850_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850_death, paste0("ESSHC 2025/", provincie, "/occupation tables/df1850_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850_B1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1850_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850_D1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1850_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875_mar, paste0("ESSHC 2025/", provincie, "/occupation tables/df1875_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875_death, paste0("ESSHC 2025/", provincie, "/occupation tables/df1875_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875_B1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1875_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875_D1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1875_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900_mar, paste0("ESSHC 2025/", provincie, "/occupation tables/df1900_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900_death, paste0("ESSHC 2025/", provincie, "/occupation tables/df1900_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900_B1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1900_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900_D1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1900_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930_mar, paste0("ESSHC 2025/", provincie, "/occupation tables/df1930_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930_death, paste0("ESSHC 2025/", provincie, "/occupation tables/df1930_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930_B1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1930_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930_D1, paste0("ESSHC 2025/", provincie, "/occupation tables/df1930_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
   
+
   plotOccupation <- function(a) {
-  ggplot(data=a[a[["perc"]]>1,], aes(x=reorder(Occupation, perc), y=perc, label=perc)) +
+  ggplot(data=a[1:10,], aes(x=reorder(Occupation, perc), y=perc, label=perc)) +
       geom_bar(stat="Identity") +
       coord_flip() +
       geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      geom_hline(yintercept = seq(0,50,10), linetype=3, size=.1) +
+      geom_hline(yintercept = seq(0,90,10), linetype=3, size=.1) +
       theme(panel.background = element_blank(),
             axis.text.y = element_text(colour="grey20",size=9,angle=0,hjust=.5,vjust=0,face="plain"),
             axis.text.x = element_text(colour="grey20",size=9,angle=0,hjust=.5,vjust=0,face="plain"),
@@ -178,8 +187,8 @@
             legend.key=element_blank()) +
       scale_x_discrete(expand = c(0, 0)) +
       scale_y_continuous(expand = c(0, 0),
-                         breaks=seq(0,50,by=10), 
-                         limit=c(0,56)) +
+                         breaks=seq(0,100,by=10), 
+                         limit=c(0,101)) +
       labs(x="Occupational title",
            y="Percentage") +
       geom_text(hjust = -0.5, size = 2.5,
@@ -188,49 +197,113 @@
   }
 
   plotOccupation(df1812_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1812-1849 marriage.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1812-1849 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1812_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1812-1849 death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
-  plotOccupation(df1812_B1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1812-1849 B1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1812-1849 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1812_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1812-1849 D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1812-1849 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
 
   plotOccupation(df1850_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1850-1874 marriage.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1850-1874 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1850_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1850-1874 death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
-  plotOccupation(df1850_B1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1850-1874 B1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1850-1874 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1850_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1850-1874 D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1850-1874 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   
   plotOccupation(df1875_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1875-1899 marriage.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1875-1899 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1875_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1875-1899 death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
-  plotOccupation(df1875_B1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1875-1899 B1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1875-1899 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1875_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1875-1899 D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1875-1899 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
 
   plotOccupation(df1900_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1900-1929 marriage.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1900-1929 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1900_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1900-1929 death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
-  plotOccupation(df1900_B1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1900-1929 B1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1900-1929 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1900_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1900-1929 D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1900-1929 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
 
   plotOccupation(df1930_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1930-1939 marriage.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1930-1939 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1930_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1930-1939 death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1930-1939 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupation(df1930_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/top 1 graphs/1930-1939 D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs/1930-1939 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
 
 
+  #######################################################################################
+  # 2b. List occupations by certifiate type for each period, if all certs are available #
+  #######################################################################################
+  
+  saveOccupations(df1812[!is.na(df1812$Occupation_marriage) & !is.na(df1812$Occupation_death) & !is.na(df1812$Occupation_D1),], "df1812all")
+  saveOccupations(df1850[!is.na(df1850$Occupation_marriage) & !is.na(df1850$Occupation_death) & !is.na(df1850$Occupation_D1),], "df1850all")
+  saveOccupations(df1875[!is.na(df1875$Occupation_marriage) & !is.na(df1875$Occupation_death) & !is.na(df1875$Occupation_D1),], "df1875all")
+  saveOccupations(df1900[!is.na(df1900$Occupation_marriage) & !is.na(df1900$Occupation_death) & !is.na(df1900$Occupation_D1),], "df1900all")
+  saveOccupations(df1930[!is.na(df1930$Occupation_marriage) & !is.na(df1930$Occupation_death) & !is.na(df1930$Occupation_D1),], "df1930all")
+  
+  write.table(df1812all_mar, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1812all_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812all_death, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1812all_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812all_B1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1812all_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1812all_D1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1812all_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850all_mar, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1850all_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850all_death, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1850all_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850all_B1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1850all_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1850all_D1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1850all_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875all_mar, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1875all_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875all_death, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1875all_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875all_B1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1875all_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1875all_D1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1875all_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900all_mar, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1900all_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900all_death, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1900all_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900all_B1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1900all_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1900all_D1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1900all_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930all_mar, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1930all_mar.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930all_death, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1930all_death.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930all_B1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1930all_B1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+  write.table(df1930all_D1, paste0("ESSHC 2025/", provincie, "/occupation tables - marriage + death + child available/df1930all_D1.csv"), sep=",", col.names=T, row.names=F, quote=T, fileEncoding="UTF-8")
+
+  
+  plotOccupation(df1812all_mar)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1812-1849 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1812all_death)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1812-1849 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1812all_D1)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1812-1849 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+
+  plotOccupation(df1850all_mar)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1850-1874 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1850all_death)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1850-1874 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1850all_D1)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1850-1874 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  
+  plotOccupation(df1875all_mar)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1875-1899 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1875all_death)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1875-1899 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1875all_D1)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1875-1899 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+
+  plotOccupation(df1900all_mar)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1900-1929 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1900all_death)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1900-1929 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupation(df1900all_D1)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1900-1929 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+
+  #plotOccupation(df1930all_mar)
+  #ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1930-1939 marriage.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  #plotOccupation(df1930all_death)
+  #ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1930-1939 death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  #plotOccupation(df1930all_D1)
+  #ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/top 10 graphs - marriage + death + child available/1930-1939 D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  
+  
+  ##############################################
+  # 3a. Make timeline for each certifiate type #
+  ##############################################
+  
   colnames(df1812_mar) <- c("Occupation", "n_1812", "perc_1812")
   colnames(df1850_mar) <- c("Occupation", "n_1850", "perc_1850")
   colnames(df1875_mar) <- c("Occupation", "n_1875", "perc_1875")
@@ -245,6 +318,7 @@
                    df_mar$Occupation %in% head(df_mar[order(-df_mar$perc_1875),]$Occupation,3) | 
                    df_mar$Occupation %in% head(df_mar[order(-df_mar$perc_1900),]$Occupation,3) | 
                    df_mar$Occupation %in% head(df_mar[order(-df_mar$perc_1930),]$Occupation,3) ,]
+  df_mar[is.na(df_mar)] <- 0
   df_mar <- df_mar[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
   df_mar$year <- ifelse(df_mar$year=="perc_1812", "1812-1849",
                  ifelse(df_mar$year=="perc_1850", "1850-1874",
@@ -266,30 +340,13 @@
                    df_death$Occupation %in% head(df_death[order(-df_death$perc_1875),]$Occupation,3) | 
                    df_death$Occupation %in% head(df_death[order(-df_death$perc_1900),]$Occupation,3) | 
                    df_death$Occupation %in% head(df_death[order(-df_death$perc_1930),]$Occupation,3) ,]
+  df_death[is.na(df_death)] <- 0
   df_death <- df_death[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
   df_death$year <- ifelse(df_death$year=="perc_1812", "1812-1849",
                  ifelse(df_death$year=="perc_1850", "1850-1874",
                  ifelse(df_death$year=="perc_1875", "1875-1899",
                  ifelse(df_death$year=="perc_1900", "1900-1929",
                  ifelse(df_death$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
-
-  colnames(df1812_B1) <- c("Occupation", "n_1812", "perc_1812")
-  colnames(df1850_B1) <- c("Occupation", "n_1850", "perc_1850")
-  colnames(df1875_B1) <- c("Occupation", "n_1875", "perc_1875")
-  colnames(df1900_B1) <- c("Occupation", "n_1900", "perc_1900")
-  df_B1 <- merge(df1812_B1, df1850_B1, by="Occupation", all=T)
-  df_B1 <- merge(df_B1, df1875_B1, by="Occupation", all=T)
-  df_B1 <- merge(df_B1, df1900_B1, by="Occupation", all=T)
-  df_B1 <- df_B1[df_B1$Occupation %in% head(df_B1[order(-df_B1$perc_1812),]$Occupation,3) | 
-                   df_B1$Occupation %in% head(df_B1[order(-df_B1$perc_1850),]$Occupation,3) | 
-                   df_B1$Occupation %in% head(df_B1[order(-df_B1$perc_1875),]$Occupation,3) | 
-                   df_B1$Occupation %in% head(df_B1[order(-df_B1$perc_1900),]$Occupation,3) ,]
-  df_B1 <- df_B1[,c(1,3,5,7,9)] %>% pivot_longer(cols = perc_1812:perc_1900 , names_to = "year", values_to = "perc")
-  df_B1$year <- ifelse(df_B1$year=="perc_1812", "1812-1849",
-                 ifelse(df_B1$year=="perc_1850", "1850-1874",
-                 ifelse(df_B1$year=="perc_1875", "1875-1899",
-                 ifelse(df_B1$year=="perc_1900", "1900-1929",
-                 ifelse(df_B1$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
 
   colnames(df1812_D1) <- c("Occupation", "n_1812", "perc_1812")
   colnames(df1850_D1) <- c("Occupation", "n_1850", "perc_1850")
@@ -305,15 +362,13 @@
                    df_D1$Occupation %in% head(df_D1[order(-df_D1$perc_1875),]$Occupation,3) | 
                    df_D1$Occupation %in% head(df_D1[order(-df_D1$perc_1900),]$Occupation,3) | 
                    df_D1$Occupation %in% head(df_D1[order(-df_D1$perc_1930),]$Occupation,3) ,]
+  df_D1[is.na(df_D1)] <- 0
   df_D1 <- df_D1[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
   df_D1$year <- ifelse(df_D1$year=="perc_1812", "1812-1849",
                  ifelse(df_D1$year=="perc_1850", "1850-1874",
                  ifelse(df_D1$year=="perc_1875", "1875-1899",
                  ifelse(df_D1$year=="perc_1900", "1900-1929",
                  ifelse(df_D1$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
-
-
-
   
 
   plotOccupationTimeLine <- function(a){
@@ -322,7 +377,7 @@
       geom_line() +
       geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      geom_hline(yintercept = seq(0,60,10), linetype=3, size=.1) +
+      geom_hline(yintercept = seq(0,100,10), linetype=3, size=.1) +
       theme(panel.background = element_blank(),
             axis.text.y = element_text(colour="grey20",size=9,angle=0,hjust=.5,vjust=0,face="plain"),
             axis.text.x = element_text(colour="grey20",size=9,angle=0,hjust=.5,vjust=0,face="plain"),
@@ -332,16 +387,94 @@
             legend.position="bottom", legend.title = element_blank(),
             legend.key=element_blank()) +
       scale_y_continuous(expand = c(0, 0),
-                         breaks=seq(0,60,by=10), 
-                         limit=c(0,61)) +
+                         breaks=seq(0,100,by=10), 
+                         limit=c(0,101)) +
       labs(x="Period",
            y="Percentage")
   }
   plotOccupationTimeLine(df_mar)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/timelines/mar.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines/mar.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupationTimeLine(df_death)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/timelines/death.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
-  plotOccupationTimeLine(df_B1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/timelines/B1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines/death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
   plotOccupationTimeLine(df_D1)
-  ggsave("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/Zeeland/timelines/D1.png", plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines/D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+
+
+  ##########################################################################
+  # 3b. Make timeline for each certifiate type, if all certs are available #
+  ##########################################################################
+  
+  colnames(df1812all_mar) <- c("Occupation", "n_1812", "perc_1812")
+  colnames(df1850all_mar) <- c("Occupation", "n_1850", "perc_1850")
+  colnames(df1875all_mar) <- c("Occupation", "n_1875", "perc_1875")
+  colnames(df1900all_mar) <- c("Occupation", "n_1900", "perc_1900")
+  colnames(df1930all_mar) <- c("Occupation", "n_1930", "perc_1930")
+  dfall_mar <- merge(df1812all_mar, df1850all_mar, by="Occupation", all=T)
+  dfall_mar <- merge(dfall_mar, df1875all_mar, by="Occupation", all=T)
+  dfall_mar <- merge(dfall_mar, df1900all_mar, by="Occupation", all=T)
+  dfall_mar <- merge(dfall_mar, df1930all_mar, by="Occupation", all=T)
+  dfall_mar <- dfall_mar[dfall_mar$Occupation %in% head(dfall_mar[order(-dfall_mar$perc_1812),]$Occupation,3) | 
+                   dfall_mar$Occupation %in% head(dfall_mar[order(-dfall_mar$perc_1850),]$Occupation,3) | 
+                   dfall_mar$Occupation %in% head(dfall_mar[order(-dfall_mar$perc_1875),]$Occupation,3) | 
+                   dfall_mar$Occupation %in% head(dfall_mar[order(-dfall_mar$perc_1900),]$Occupation,3) | 
+                   dfall_mar$Occupation %in% head(dfall_mar[order(-dfall_mar$perc_1930),]$Occupation,3) ,]
+  dfall_mar[is.na(dfall_mar)] <- 0
+  dfall_mar <- dfall_mar[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
+  dfall_mar$year <- ifelse(dfall_mar$year=="perc_1812", "1812-1849",
+                 ifelse(dfall_mar$year=="perc_1850", "1850-1874",
+                 ifelse(dfall_mar$year=="perc_1875", "1875-1899",
+                 ifelse(dfall_mar$year=="perc_1900", "1900-1929",
+                 ifelse(dfall_mar$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
+  
+  colnames(df1812all_death) <- c("Occupation", "n_1812", "perc_1812")
+  colnames(df1850all_death) <- c("Occupation", "n_1850", "perc_1850")
+  colnames(df1875all_death) <- c("Occupation", "n_1875", "perc_1875")
+  colnames(df1900all_death) <- c("Occupation", "n_1900", "perc_1900")
+  colnames(df1930all_death) <- c("Occupation", "n_1930", "perc_1930")
+  dfall_death <- merge(df1812all_death, df1850all_death, by="Occupation", all=T)
+  dfall_death <- merge(dfall_death, df1875all_death, by="Occupation", all=T)
+  dfall_death <- merge(dfall_death, df1900all_death, by="Occupation", all=T)
+  dfall_death <- merge(dfall_death, df1930all_death, by="Occupation", all=T)
+  dfall_death <- dfall_death[dfall_death$Occupation %in% head(dfall_death[order(-dfall_death$perc_1812),]$Occupation,3) | 
+                   dfall_death$Occupation %in% head(dfall_death[order(-dfall_death$perc_1850),]$Occupation,3) | 
+                   dfall_death$Occupation %in% head(dfall_death[order(-dfall_death$perc_1875),]$Occupation,3) | 
+                   dfall_death$Occupation %in% head(dfall_death[order(-dfall_death$perc_1900),]$Occupation,3) | 
+                   dfall_death$Occupation %in% head(dfall_death[order(-dfall_death$perc_1930),]$Occupation,3) ,]
+  dfall_death[is.na(dfall_death)] <- 0
+  dfall_death <- dfall_death[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
+  dfall_death$year <- ifelse(dfall_death$year=="perc_1812", "1812-1849",
+                 ifelse(dfall_death$year=="perc_1850", "1850-1874",
+                 ifelse(dfall_death$year=="perc_1875", "1875-1899",
+                 ifelse(dfall_death$year=="perc_1900", "1900-1929",
+                 ifelse(dfall_death$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
+
+  colnames(df1812all_D1) <- c("Occupation", "n_1812", "perc_1812")
+  colnames(df1850all_D1) <- c("Occupation", "n_1850", "perc_1850")
+  colnames(df1875all_D1) <- c("Occupation", "n_1875", "perc_1875")
+  colnames(df1900all_D1) <- c("Occupation", "n_1900", "perc_1900")
+  colnames(df1930all_D1) <- c("Occupation", "n_1930", "perc_1930")
+  dfall_D1 <- merge(df1812all_D1, df1850all_D1, by="Occupation", all=T)
+  dfall_D1 <- merge(dfall_D1, df1875all_D1, by="Occupation", all=T)
+  dfall_D1 <- merge(dfall_D1, df1900all_D1, by="Occupation", all=T)
+  dfall_D1 <- merge(dfall_D1, df1930all_D1, by="Occupation", all=T)
+  dfall_D1 <- dfall_D1[dfall_D1$Occupation %in% head(dfall_D1[order(-dfall_D1$perc_1812),]$Occupation,3) | 
+                   dfall_D1$Occupation %in% head(dfall_D1[order(-dfall_D1$perc_1850),]$Occupation,3) | 
+                   dfall_D1$Occupation %in% head(dfall_D1[order(-dfall_D1$perc_1875),]$Occupation,3) | 
+                   dfall_D1$Occupation %in% head(dfall_D1[order(-dfall_D1$perc_1900),]$Occupation,3) | 
+                   dfall_D1$Occupation %in% head(dfall_D1[order(-dfall_D1$perc_1930),]$Occupation,3) ,]
+  dfall_D1[is.na(dfall_D1)] <- 0
+  dfall_D1 <- dfall_D1[,c(1,3,5,7,9,11)] %>% pivot_longer(cols = perc_1812:perc_1930 , names_to = "year", values_to = "perc")
+  dfall_D1$year <- ifelse(dfall_D1$year=="perc_1812", "1812-1849",
+                 ifelse(dfall_D1$year=="perc_1850", "1850-1874",
+                 ifelse(dfall_D1$year=="perc_1875", "1875-1899",
+                 ifelse(dfall_D1$year=="perc_1900", "1900-1929",
+                 ifelse(dfall_D1$year=="perc_1930", "1930-1939", "AAAAHHHHH")))))
+
+  
+  plotOccupationTimeLine(dfall_mar)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines - marriage + death + child available/mar.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupationTimeLine(dfall_death)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines - marriage + death + child available/death.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+  plotOccupationTimeLine(dfall_D1)
+  ggsave(paste0("/home/tuinschepje/Surfdrive/Onderzoek/2023 - Werkende vrouwen/ESSHC 2025/", provincie, "/timelines - marriage + death + child available/D1.png"), plot = last_plot(), unit="in", dpi=900, width=8, height=6)
+
